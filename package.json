@@ -1,0 +1,19 @@
+{
+  "name": "app-onelogin-sync",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Sync OneLogin users/groups/roles to App Builder",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "Kuali",
+  "license": "PRIVATE",
+  "devDependencies": {
+    "standard": "^11.0.1"
+  },
+  "dependencies": {
+    "axios": "^0.18.0",
+    "dotenv": "^6.0.0"
+  }
+}
