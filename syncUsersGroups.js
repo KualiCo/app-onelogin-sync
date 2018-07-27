@@ -4,44 +4,132 @@ const kualiRequest = require('./kualiRequest')
 const syncUsersGroups = async () => {
   const req = await oneLoginRequest
 
-  // Get all onelogin users
-  let users = []
-  let res = await req.get('/api/1/users?fields=id,role_id')
-  users = users.concat(res.data.data)
+  // Get all onelogin roles
+  let roles = []
+  let res = await req.get('/api/1/roles')
+
+  roles = roles.concat(res.data.data)
 
   while (res.data.pagination && res.data.pagination.after_cursor) {
     res = await req.get(
-      `/api/1/users?fields=id,role_id&after_cursor=${
-        res.data.pagination.after_cursor
-      }`
+      `/api/1/roles?after_cursor=${res.data.pagination.after_cursor}`
     )
-    users = users.concat(res.data.data)
+    roles = roles.concat(res.data.data)
   }
-  console.log(`Syncing ${users.length} users`)
 
-  // Sync users into groups
-  // foreach user
-  users.forEach(async user => {
-    let res = await kualiRequest.get(`/api/v1/users?schoolId=${user.id}`)
-    if (res.data || res.data[0]) {
-      const kualiUserId = res.data[0].id
+  console.log(`Syncing ${roles.length} groups`)
 
-      if (Array.isArray(user.role_id)) {
-        user.role_id.forEach(async roleId => {
-          res = await kualiRequest.get(
-            `/api/v1/groups?fields(${
-              process.env.KUALI_ONELOGIN_FIELD_ID
-            })=${roleId}`
-          )
+  roles.some(async (role, index, roles) => {
+    // get users for this role
+    let users = []
+    let res
+    try {
+      res = await req.get(`/api/1/users?role_id=${role.id}&fields=id`)
+      users = users.concat(res.data.data)
+    } catch (err) {
+      console.log(err)
+      return false
+    }
 
-          if (res.data && res.data[0]) {
-            const category = res.data[0]
-            console.log(category.roles)
-          }
-        })
+    while (res.data.pagination && res.data.pagination.after_cursor) {
+      try {
+        res = await req.get(
+          `/api/1/users?role_id=${role.id}&fields=id&after_cursor=${
+            res.data.pagination.after_cursor
+          }`
+        )
+        users = users.concat(res.data.data)
+      } catch (err) {
+        console.log(err)
       }
     }
+
+    console.log(role.name)
+    console.log(users.length)
+
+    let group
+    try {
+      res = await kualiRequest.get(
+        `/api/v1/groups?fields(${process.env.KUALI_ONELOGIN_FIELD_ID})=${
+          role.id
+        }`
+      )
+      if (res.data && res.data[0]) {
+        group = res.data[0]
+      }
+    } catch (err) {
+      console.log(err)
+    }
+
+    console.log(role, group, users)
+
+    // loop users
+    // get kualiUserId
+    // check if kualiUserId is in group
+    // if not add it
+
+    // loop group members
+    // lookup onelogin id
+    // check if in onelogin users
+    // if not, remove
+
+    return true
+    // const pos = group.roles
+    //   .map(r => {
+    //     return r.id
+    //   })
+    //   .indexOf('members')
+    // const members = group.roles[pos].value
+
+    // // if included skip
+    // if (members.includes(kualiUserId)) {
+    //   return
+    // }
+    // members.push(kualiUserId)
+    // group.roles[pos].value = members
+    // // console.log(group.roles)
+    // try {
+    //   res = await kualiRequest.put(`/api/v1/groups/${group.id}`, group)
+    //   console.log(res.data)
+    // } catch (err) {
+    //   console.log(err.data)
+    // }
+
+    // get kuali group for this role
+    // add onelogin users not present
+    // remove kuali users not present in onelogin
   })
+
+  //         if (res.data && res.data[0]) {
+  //           const group = res.data[0]
+  //           // const roles = group.roles
+  //           // console.log(roles)
+
+  //           const pos = group.roles
+  //             .map(r => {
+  //               return r.id
+  //             })
+  //             .indexOf('members')
+  //           const members = group.roles[pos].value
+
+  //           // if included skip
+  //           if (members.includes(kualiUserId)) {
+  //             return
+  //           }
+  //           members.push(kualiUserId)
+  //           group.roles[pos].value = members
+  //           // console.log(group.roles)
+  //           try {
+  //             res = await kualiRequest.put(`/api/v1/groups/${group.id}`, group)
+  //             console.log(res.data)
+  //           } catch (err) {
+  //             console.log(err.data)
+  //           }
+  //         }
+  //       })
+  //     }
+  //   }
+  // })
   // get kuali id for the user
   // foreach role
   // find group
