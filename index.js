@@ -5,8 +5,8 @@ const syncGroups = require('./syncGroups')
 const syncUsersGroups = require('./syncUsersGroups')
 
 const sync = async () => {
-  // await syncUsers()
-  // await syncGroups()
+  await syncUsers()
+  await syncGroups()
   await syncUsersGroups()
 }
 

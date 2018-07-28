@@ -6,139 +6,142 @@ const syncUsersGroups = async () => {
 
   // Get all onelogin roles
   let roles = []
-  let res = await req.get('/api/1/roles')
+  let res
+  try {
+    res = await req.get('/api/1/roles')
+  } catch (err) {
+    console.log(err)
+  }
 
   roles = roles.concat(res.data.data)
 
   while (res.data.pagination && res.data.pagination.after_cursor) {
-    res = await req.get(
-      `/api/1/roles?after_cursor=${res.data.pagination.after_cursor}`
-    )
-    roles = roles.concat(res.data.data)
+    try {
+      res = await req.get(
+        `/api/1/roles?after_cursor=${res.data.pagination.after_cursor}`
+      )
+      roles = roles.concat(res.data.data)
+    } catch (err) {
+      console.log(err)
+    }
   }
 
-  console.log(`Syncing ${roles.length} groups`)
+  let kualiUsers
+  try {
+    res = await kualiRequest.get(`/api/v1/users?fields=id,schoolId`)
+    kualiUsers = res.data
+  } catch (err) {
+    console.log(err)
+  }
 
-  roles.some(async (role, index, roles) => {
-    // get users for this role
-    let users = []
-    let res
+  console.log(`Syncing users to ${roles.length} groups`)
+
+  processRoles(roles, req, kualiUsers)
+}
+
+async function processRoles (roles, req, kualiUsers) {
+  for (const role of roles) {
+    await syncRole(role, req, kualiUsers)
+  }
+}
+
+async function syncRole (role, req, kualiUsers) {
+  let oneLoginUsers = []
+  let res
+  try {
+    res = await req.get(`/api/1/users?role_id=${role.id}&fields=id`)
+    oneLoginUsers = oneLoginUsers.concat(res.data.data)
+  } catch (err) {
+    console.log('THIS', role, err.response.status, err.response.statusText)
+    throw err
+  }
+
+  while (res.data.pagination && res.data.pagination.after_cursor) {
     try {
-      res = await req.get(`/api/1/users?role_id=${role.id}&fields=id`)
-      users = users.concat(res.data.data)
-    } catch (err) {
-      console.log(err)
-      return false
-    }
-
-    while (res.data.pagination && res.data.pagination.after_cursor) {
-      try {
-        res = await req.get(
-          `/api/1/users?role_id=${role.id}&fields=id&after_cursor=${
-            res.data.pagination.after_cursor
-          }`
-        )
-        users = users.concat(res.data.data)
-      } catch (err) {
-        console.log(err)
-      }
-    }
-
-    console.log(role.name)
-    console.log(users.length)
-
-    let group
-    try {
-      res = await kualiRequest.get(
-        `/api/v1/groups?fields(${process.env.KUALI_ONELOGIN_FIELD_ID})=${
-          role.id
+      res = await req.get(
+        `/api/1/users?role_id=${role.id}&fields=id&after_cursor=${
+          res.data.pagination.after_cursor
         }`
       )
-      if (res.data && res.data[0]) {
-        group = res.data[0]
-      }
+      oneLoginUsers = oneLoginUsers.concat(res.data.data)
     } catch (err) {
-      console.log(err)
+      console.log('THAT', err.response.status, err.response.statusText)
     }
+  }
 
-    console.log(role, group, users)
-
-    // loop users
-    // get kualiUserId
-    // check if kualiUserId is in group
-    // if not add it
-
-    // loop group members
-    // lookup onelogin id
-    // check if in onelogin users
-    // if not, remove
-
-    return true
-    // const pos = group.roles
-    //   .map(r => {
-    //     return r.id
-    //   })
-    //   .indexOf('members')
-    // const members = group.roles[pos].value
-
-    // // if included skip
-    // if (members.includes(kualiUserId)) {
-    //   return
-    // }
-    // members.push(kualiUserId)
-    // group.roles[pos].value = members
-    // // console.log(group.roles)
-    // try {
-    //   res = await kualiRequest.put(`/api/v1/groups/${group.id}`, group)
-    //   console.log(res.data)
-    // } catch (err) {
-    //   console.log(err.data)
-    // }
-
-    // get kuali group for this role
-    // add onelogin users not present
-    // remove kuali users not present in onelogin
+  // convert array of object to array of string ids
+  oneLoginUsers = oneLoginUsers.map(user => {
+    return user.id.toString()
   })
 
-  //         if (res.data && res.data[0]) {
-  //           const group = res.data[0]
-  //           // const roles = group.roles
-  //           // console.log(roles)
+  console.log(`Syncing ${oneLoginUsers.length} to ${role.name}`)
 
-  //           const pos = group.roles
-  //             .map(r => {
-  //               return r.id
-  //             })
-  //             .indexOf('members')
-  //           const members = group.roles[pos].value
+  let group
+  try {
+    res = await kualiRequest.get(
+      `/api/v1/groups?fields(${process.env.KUALI_ONELOGIN_FIELD_ID})=${role.id}`
+    )
+    if (res.data && res.data[0]) {
+      group = res.data[0]
+    }
+  } catch (err) {
+    console.log(err)
+  }
 
-  //           // if included skip
-  //           if (members.includes(kualiUserId)) {
-  //             return
-  //           }
-  //           members.push(kualiUserId)
-  //           group.roles[pos].value = members
-  //           // console.log(group.roles)
-  //           try {
-  //             res = await kualiRequest.put(`/api/v1/groups/${group.id}`, group)
-  //             console.log(res.data)
-  //           } catch (err) {
-  //             console.log(err.data)
-  //           }
-  //         }
-  //       })
-  //     }
-  //   }
-  // })
-  // get kuali id for the user
-  // foreach role
-  // find group
-  // check if kuali id is in members role
-  // if not there
-  // add kuali id to members role
+  const memberPos = group.roles
+    .map(r => {
+      return r.id
+    })
+    .indexOf('members')
+  const kualiMembers = group.roles[memberPos].value
 
-  // Delete users from groups they are no longer in
-  // ?????
+  oneLoginUsers.forEach(async user => {
+    const kualiUser = kualiUsers.find(kualiUser => {
+      return kualiUser.schoolId === user
+    })
+    if (kualiUser) {
+      if (!kualiMembers.includes(kualiUser.id)) {
+        kualiMembers.push(kualiUser.id)
+      }
+    }
+    // try {
+    //   res = await kualiRequest.get(`/api/v1/users?schoolId=${user}`)
+    //   if (res.data && res.data[0]) {
+    //     const userId = res.data[0].id
+    //     if (kualiMembers.includes(userId)) {
+    //       return
+    //     }
+    //     kualiMembers.push(userId)
+    //   }
+    // } catch (err) {
+    //   console.log(err)
+    // }
+  })
+
+  for (let i = 0; i < kualiMembers.length; i++) {
+    const kualiUser = kualiUsers.find(kualiUser => {
+      return kualiUser.id === kualiMembers[i]
+    })
+
+    // try {
+    // res = await kualiRequest.get(`/api/v1/users/${kualiMembers[i]}`)
+    // if (res.data) {
+    // const kualiUser = res.data
+    if (kualiUser && !oneLoginUsers.includes(kualiUser.schoolId)) {
+      console.log('removing', kualiUser.displayName)
+      kualiMembers.splice(i, 1)
+    }
+    // } catch (err) {
+    // console.log(err)
+    // }
+  }
+
+  group.roles[memberPos].value = kualiMembers
+  try {
+    res = await kualiRequest.put(`/api/v1/groups/${group.id}`, group)
+  } catch (err) {
+    console.log(err)
+  }
 }
 
 module.exports = syncUsersGroups
