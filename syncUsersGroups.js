@@ -1,5 +1,8 @@
+const config = require('config')
 const oneLoginRequest = require('./oneLoginRequest')
 const kualiRequest = require('./kualiRequest')
+
+const kualiOneLoginFieldId = config.kuali.oneLoginFieldId
 
 const syncUsersGroups = async () => {
   const req = await oneLoginRequest
@@ -52,7 +55,7 @@ async function syncRole (role, req, kualiUsers) {
     res = await req.get(`/api/1/users?role_id=${role.id}&fields=id`)
     oneLoginUsers = oneLoginUsers.concat(res.data.data)
   } catch (err) {
-    console.log('THIS', role, err.response.status, err.response.statusText)
+    console.log(role, err.response.status, err.response.statusText)
     throw err
   }
 
@@ -65,11 +68,11 @@ async function syncRole (role, req, kualiUsers) {
       )
       oneLoginUsers = oneLoginUsers.concat(res.data.data)
     } catch (err) {
-      console.log('THAT', err.response.status, err.response.statusText)
+      console.log(err.response.status, err.response.statusText)
     }
   }
 
-  // convert array of object to array of string ids
+  // convert array of objects to array of string ids
   oneLoginUsers = oneLoginUsers.map(user => {
     return user.id.toString()
   })
@@ -79,7 +82,7 @@ async function syncRole (role, req, kualiUsers) {
   let group
   try {
     res = await kualiRequest.get(
-      `/api/v1/groups?fields(${process.env.KUALI_ONELOGIN_FIELD_ID})=${role.id}`
+      `/api/v1/groups?fields(${kualiOneLoginFieldId})=${role.id}`
     )
     if (res.data && res.data[0]) {
       group = res.data[0]
@@ -104,18 +107,6 @@ async function syncRole (role, req, kualiUsers) {
         kualiMembers.push(kualiUser.id)
       }
     }
-    // try {
-    //   res = await kualiRequest.get(`/api/v1/users?schoolId=${user}`)
-    //   if (res.data && res.data[0]) {
-    //     const userId = res.data[0].id
-    //     if (kualiMembers.includes(userId)) {
-    //       return
-    //     }
-    //     kualiMembers.push(userId)
-    //   }
-    // } catch (err) {
-    //   console.log(err)
-    // }
   })
 
   for (let i = 0; i < kualiMembers.length; i++) {
@@ -123,17 +114,10 @@ async function syncRole (role, req, kualiUsers) {
       return kualiUser.id === kualiMembers[i]
     })
 
-    // try {
-    // res = await kualiRequest.get(`/api/v1/users/${kualiMembers[i]}`)
-    // if (res.data) {
-    // const kualiUser = res.data
     if (kualiUser && !oneLoginUsers.includes(kualiUser.schoolId)) {
       console.log('removing', kualiUser.displayName)
       kualiMembers.splice(i, 1)
     }
-    // } catch (err) {
-    // console.log(err)
-    // }
   }
 
   group.roles[memberPos].value = kualiMembers

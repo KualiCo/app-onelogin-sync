@@ -1,9 +1,14 @@
+const config = require('config')
 const axios = require('axios')
-axios.defaults.baseURL = 'https://api.us.onelogin.com'
+
+const baseURL = config.oneLogin.baseURL
+const username = config.oneLogin.clientId
+const password = config.oneLogin.clientSecret
 
 const getRequest = async () => {
   const accessToken = await getAccessToken()
   const request = axios.create({
+    baseURL,
     headers: {
       Authorization: `Bearer ${accessToken}`,
       'Content-Type': 'application/json'
@@ -14,11 +19,12 @@ const getRequest = async () => {
 
 const getAccessToken = async () => {
   const options = {
+    baseURL,
     url: '/auth/oauth2/v2/token',
     method: 'post',
     auth: {
-      username: process.env.ONELOGIN_CLIENT_ID,
-      password: process.env.ONELOGIN_CLIENT_SECRET
+      username,
+      password
     },
     data: {
       grant_type: 'client_credentials'

@@ -1,6 +1,8 @@
 const axios = require('axios')
-const apiKey = process.env.KUALI_API_KEY
-const baseURL = process.env.KUALI_BASE_URL
+const config = require('config')
+
+const apiKey = config.kuali.apiKey
+const baseURL = config.kuali.baseURL
 
 const request = axios.create({
   baseURL,

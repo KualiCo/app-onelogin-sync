@@ -1,5 +1,9 @@
+const config = require('config')
 const oneLoginRequest = require('./oneLoginRequest')
 const kualiRequest = require('./kualiRequest')
+
+const kualiOneLoginCategoryId = config.kuali.oneLoginCategoryId
+const kualiOneLoginFieldId = config.kuali.oneLoginFieldId
 
 const syncGroups = async () => {
   const req = await oneLoginRequest
@@ -19,7 +23,7 @@ const syncGroups = async () => {
 
   roles.forEach(async role => {
     const res = await kualiRequest.get(
-      `/api/v1/groups?fields(${process.env.KUALI_ONELOGIN_FIELD_ID})=${role.id}`
+      `/api/v1/groups?fields(${kualiOneLoginFieldId})=${role.id}`
     )
     if (res.data && res.data[0]) {
       const kualiGroup = res.data[0]
@@ -36,10 +40,10 @@ const syncGroups = async () => {
     } else {
       const newGroup = {
         name: role.name,
-        categoryId: process.env.KUALI_ONELOGIN_CATEGORY_ID,
+        categoryId: kualiOneLoginCategoryId,
         fields: [
           {
-            id: process.env.KUALI_ONELOGIN_FIELD_ID,
+            id: kualiOneLoginFieldId,
             value: role.id
           }
         ]
@@ -53,13 +57,11 @@ const syncGroups = async () => {
   })
 
   const response = await kualiRequest.get(
-    `/api/v1/groups?categoryId=${process.env.KUALI_ONELOGIN_CATEGORY_ID}`
+    `/api/v1/groups?categoryId=${kualiOneLoginCategoryId}`
   )
   const kualiGroups = response.data
   kualiGroups.forEach(async kualiGroup => {
-    let i = kualiGroup.fields.findIndex(
-      f => f.id === process.env.KUALI_ONELOGIN_FIELD_ID
-    )
+    let i = kualiGroup.fields.findIndex(f => f.id === kualiOneLoginFieldId)
     const oneLoginId = kualiGroup.fields[i].value
     let index = roles.findIndex(r => r.id.toString() === oneLoginId)
     if (index === -1) {

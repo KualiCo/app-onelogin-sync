@@ -1,5 +1,3 @@
-require('dotenv').config()
-
 const syncUsers = require('./syncUsers')
 const syncGroups = require('./syncGroups')
 const syncUsersGroups = require('./syncUsersGroups')
