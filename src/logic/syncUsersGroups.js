@@ -1,4 +1,5 @@
 const config = require('config')
+const log = require('kuali-logger')(config.get('log'))
 const oneLoginRequest = require('../lib/oneLoginRequest')
 const kualiRequest = require('../lib/kualiRequest')
 
@@ -13,7 +14,7 @@ const syncUsersGroups = async () => {
   try {
     res = await req.get('/api/1/roles')
   } catch (err) {
-    console.log(err)
+    log.error({ err, event: 'ERROR' })
   }
 
   roles = roles.concat(res.data.data)
@@ -25,7 +26,7 @@ const syncUsersGroups = async () => {
       )
       roles = roles.concat(res.data.data)
     } catch (err) {
-      console.log(err)
+      log.error({ err, event: 'ERROR' })
     }
   }
 
@@ -34,10 +35,10 @@ const syncUsersGroups = async () => {
     res = await kualiRequest.get(`/api/v1/users?fields=id,schoolId`)
     kualiUsers = res.data
   } catch (err) {
-    console.log(err)
+    log.error({ err, event: 'ERROR' })
   }
 
-  console.log(`Syncing users to ${roles.length} groups`)
+  log.info({ event: 'SYNC' }, `Syncing users to ${roles.length} groups`)
 
   processRoles(roles, req, kualiUsers)
 }
@@ -55,8 +56,7 @@ async function syncRole (role, req, kualiUsers) {
     res = await req.get(`/api/1/users?role_id=${role.id}&fields=id`)
     oneLoginUsers = oneLoginUsers.concat(res.data.data)
   } catch (err) {
-    console.log(role, err.response.status, err.response.statusText)
-    throw err
+    log.error({ err, event: 'ERROR' })
   }
 
   while (res.data.pagination && res.data.pagination.after_cursor) {
@@ -68,7 +68,7 @@ async function syncRole (role, req, kualiUsers) {
       )
       oneLoginUsers = oneLoginUsers.concat(res.data.data)
     } catch (err) {
-      console.log(err.response.status, err.response.statusText)
+      log.error({ err, event: 'ERROR' })
     }
   }
 
@@ -77,7 +77,7 @@ async function syncRole (role, req, kualiUsers) {
     return user.id.toString()
   })
 
-  console.log(`Syncing ${oneLoginUsers.length} to ${role.name}`)
+  log.info({ event: 'SYNC' }, `Syncing ${oneLoginUsers.length} to ${role.name}`)
 
   let group
   try {
@@ -88,7 +88,7 @@ async function syncRole (role, req, kualiUsers) {
       group = res.data[0]
     }
   } catch (err) {
-    console.log(err)
+    log.error({ err, event: 'ERROR' })
   }
 
   const memberPos = group.roles
@@ -105,6 +105,10 @@ async function syncRole (role, req, kualiUsers) {
     if (kualiUser) {
       if (!kualiMembers.includes(kualiUser.id)) {
         kualiMembers.push(kualiUser.id)
+        log.debug(
+          { event: 'USER_GROUP_CREATE' },
+          `Creating ${kualiUser.displayName}`
+        )
       }
     }
   })
@@ -115,7 +119,10 @@ async function syncRole (role, req, kualiUsers) {
     })
 
     if (kualiUser && !oneLoginUsers.includes(kualiUser.schoolId)) {
-      console.log('removing', kualiUser.displayName)
+      log.debug(
+        { event: 'USER_GROUP_DELETE' },
+        `Deleting ${kualiUser.displayName}`
+      )
       kualiMembers.splice(i, 1)
     }
   }
@@ -123,8 +130,9 @@ async function syncRole (role, req, kualiUsers) {
   group.roles[memberPos].value = kualiMembers
   try {
     res = await kualiRequest.put(`/api/v1/groups/${group.id}`, group)
+    log.debug({ event: 'USER_GROUP_UPDATE' }, `Syncing users to ${group.name}`)
   } catch (err) {
-    console.log(err)
+    log.error({ err, event: 'ERROR' })
   }
 }
 

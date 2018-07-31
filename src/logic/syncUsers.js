@@ -1,3 +1,5 @@
+const config = require('config')
+const log = require('kuali-logger')(config.get('log'))
 const oneLoginRequest = require('../lib/oneLoginRequest')
 const kualiRequest = require('../lib/kualiRequest')
 
@@ -18,7 +20,7 @@ const syncUsers = async () => {
     )
     users = users.concat(res.data.data)
   }
-  console.log(`Syncing ${users.length} users`)
+  log.info({ event: 'SYNC' }, `Syncing ${users.length} users`)
 
   users.forEach(async user => {
     const res = await kualiRequest.get(`/api/v1/users?schoolId=${user.id}`)
@@ -35,8 +37,9 @@ const syncUsers = async () => {
 
       try {
         await kualiRequest.put(`/api/v1/users/${kualiUser.id}`, updateUser)
+        log.debug({ event: 'USER_UPDATE' })
       } catch (err) {
-        console.log(err.response.data.errors)
+        log.error({ err, event: 'ERROR' })
       }
     } else {
       const newUser = {
@@ -48,8 +51,9 @@ const syncUsers = async () => {
       }
       try {
         await kualiRequest.post(`/api/v1/users`, newUser)
+        log.debug({ event: 'USER_CREATE' })
       } catch (err) {
-        console.log(err.response.data.errors)
+        log.error({ err, event: 'ERROR' })
       }
     }
   })
@@ -58,13 +62,15 @@ const syncUsers = async () => {
   const kualiUsers = response.data
   kualiUsers.forEach(async kualiUser => {
     let index = users.findIndex(u => u.id.toString() === kualiUser.schoolId)
-    // console.log(index, kualiUser.displayName, kualiUser.schoolId)
     if (index === -1) {
-      console.log(`DELETING: ${kualiUser.displayName}`)
       try {
         await kualiRequest.delete(`/api/v1/users/${kualiUser.id}`)
+        log.debug(
+          { event: 'USER_DELETE' },
+          `DELETING: ${kualiUser.displayName}`
+        )
       } catch (err) {
-        console.log(err.response.data)
+        log.error({ err, event: 'ERROR' })
       }
     }
   })

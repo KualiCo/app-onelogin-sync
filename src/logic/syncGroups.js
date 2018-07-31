@@ -1,4 +1,5 @@
 const config = require('config')
+const log = require('kuali-logger')(config.get('log'))
 const oneLoginRequest = require('../lib/oneLoginRequest')
 const kualiRequest = require('../lib/kualiRequest')
 
@@ -19,7 +20,7 @@ const syncGroups = async () => {
     roles = roles.concat(res.data.data)
   }
 
-  console.log(`Syncing ${roles.length} groups`)
+  log.info({ event: 'SYNC' }, `Syncing ${roles.length} groups`)
 
   roles.forEach(async role => {
     const res = await kualiRequest.get(
@@ -34,8 +35,9 @@ const syncGroups = async () => {
 
       try {
         await kualiRequest.put(`/api/v1/groups/${kualiGroup.id}`, updateGroup)
+        log.debug({ event: 'GROUP_UPDATE' }, updateGroup.name)
       } catch (err) {
-        console.log(err.response.data.errors)
+        log.error({ err, event: 'ERROR' })
       }
     } else {
       const newGroup = {
@@ -50,8 +52,9 @@ const syncGroups = async () => {
       }
       try {
         await kualiRequest.post('/api/v1/groups', newGroup)
+        log.info({ event: 'GROUP_CREATE' }, newGroup.name)
       } catch (err) {
-        console.log(err.response.data.errors)
+        log.error({ err, event: 'ERROR' })
       }
     }
   })
@@ -65,11 +68,11 @@ const syncGroups = async () => {
     const oneLoginId = kualiGroup.fields[i].value
     let index = roles.findIndex(r => r.id.toString() === oneLoginId)
     if (index === -1) {
-      console.log(`Deleting ${kualiGroup.name}`)
+      log.debug({ event: 'GROUP_DELETE' }, `Deleting ${kualiGroup.name}`)
       try {
         await kualiRequest.delete(`/api/v1/groups/${kualiGroup.id}`)
       } catch (err) {
-        console.log(err.response.data.errors)
+        log.error({ err, event: 'ERROR' })
       }
     }
   })

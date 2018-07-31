@@ -1,4 +1,5 @@
 const config = require('config')
+const log = require('kuali-logger')(config.get('log'))
 const axios = require('axios')
 
 const baseURL = config.oneLogin.baseURL
@@ -36,8 +37,7 @@ const getAccessToken = async () => {
     const res = await axios.request(options)
     return res.data.access_token
   } catch (err) {
-    console.log(err)
-    console.log(err.response.data)
+    log.error({ err, event: 'ERROR' })
   }
 }
 
