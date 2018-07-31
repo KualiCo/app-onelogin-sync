@@ -3,9 +3,9 @@
   "private": true,
   "version": "1.0.0",
   "description": "Sync OneLogin users/groups/roles to App Builder",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node src/index.js"
   },
   "author": "Kuali",
   "license": "PRIVATE",

@@ -1,5 +1,5 @@
-const oneLoginRequest = require('./oneLoginRequest')
-const kualiRequest = require('./kualiRequest')
+const oneLoginRequest = require('../lib/oneLoginRequest')
+const kualiRequest = require('../lib/kualiRequest')
 
 const syncUsers = async () => {
   const req = await oneLoginRequest

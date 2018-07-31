@@ -1,6 +1,6 @@
 const config = require('config')
-const oneLoginRequest = require('./oneLoginRequest')
-const kualiRequest = require('./kualiRequest')
+const oneLoginRequest = require('../lib/oneLoginRequest')
+const kualiRequest = require('../lib/kualiRequest')
 
 const kualiOneLoginFieldId = config.kuali.oneLoginFieldId
 
