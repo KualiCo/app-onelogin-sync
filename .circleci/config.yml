@@ -32,6 +32,7 @@ jobs:
           name: Building and pushing docker image
           command: |
             export REPOSITORY=${REPOSITORY_BASE}${CIRCLE_PROJECT_REPONAME}
+            echo $REPOSITORY
             docker build --build-arg -t $REPOSITORY:latest -t $REPOSITORY:"$(cat .version)" .
             docker push $REPOSITORY:"$(cat .version)"
             docker push $REPOSITORY:latest
