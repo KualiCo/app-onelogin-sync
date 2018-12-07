@@ -5,5 +5,8 @@ module.exports = {
   },
   kuali: {
     apiKey: 'KUALI_API_KEY'
+  },
+  log: {
+    level: 'LOG_LEVEL'
   }
 }

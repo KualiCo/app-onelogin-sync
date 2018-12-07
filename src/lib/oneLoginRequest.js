@@ -37,7 +37,7 @@ const getAccessToken = async () => {
     const res = await axios.request(options)
     return res.data.access_token
   } catch (err) {
-    log.error({ err, event: 'ERROR' })
+    log.error({ err, event: 'ERROR', service: 'OneLogin' })
   }
 }
 

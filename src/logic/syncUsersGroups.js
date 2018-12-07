@@ -77,7 +77,10 @@ async function syncRole (role, req, kualiUsers) {
     return user.id.toString()
   })
 
-  log.info({ event: 'SYNC' }, `Syncing ${oneLoginUsers.length} to ${role.name}`)
+  log.debug(
+    { event: 'SYNC' },
+    `Syncing ${oneLoginUsers.length} to ${role.name}`
+  )
 
   let group
   try {

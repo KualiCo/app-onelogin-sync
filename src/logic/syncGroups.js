@@ -23,9 +23,15 @@ const syncGroups = async () => {
   log.info({ event: 'SYNC' }, `Syncing ${roles.length} groups`)
 
   roles.forEach(async role => {
-    const res = await kualiRequest.get(
-      `/api/v1/groups?fields(${kualiOneLoginFieldId})=${role.id}`
-    )
+    let res
+    try {
+      res = await kualiRequest.get(
+        `/api/v1/groups?fields(${kualiOneLoginFieldId})=${role.id}`
+      )
+    } catch (err) {
+      log.error({ err, event: 'ERROR', roleId: role.id })
+    }
+
     if (res.data && res.data[0]) {
       const kualiGroup = res.data[0]
 
@@ -37,7 +43,12 @@ const syncGroups = async () => {
         await kualiRequest.put(`/api/v1/groups/${kualiGroup.id}`, updateGroup)
         log.debug({ event: 'GROUP_UPDATE' }, updateGroup.name)
       } catch (err) {
-        log.error({ err, event: 'ERROR' })
+        log.error({
+          err,
+          event: 'ERROR',
+          updateGroup: updateGroup.name,
+          groupId: kualiGroup.id
+        })
       }
     } else {
       const newGroup = {
@@ -54,7 +65,7 @@ const syncGroups = async () => {
         await kualiRequest.post('/api/v1/groups', newGroup)
         log.info({ event: 'GROUP_CREATE' }, newGroup.name)
       } catch (err) {
-        log.error({ err, event: 'ERROR' })
+        log.error({ err, event: 'ERROR', newGroup: newGroup.name })
       }
     }
   })
@@ -68,11 +79,11 @@ const syncGroups = async () => {
     const oneLoginId = kualiGroup.fields[i].value
     let index = roles.findIndex(r => r.id.toString() === oneLoginId)
     if (index === -1) {
-      log.debug({ event: 'GROUP_DELETE' }, `Deleting ${kualiGroup.name}`)
+      log.info({ event: 'GROUP_DELETE' }, `Deleting ${kualiGroup.name}`)
       try {
         await kualiRequest.delete(`/api/v1/groups/${kualiGroup.id}`)
       } catch (err) {
-        log.error({ err, event: 'ERROR' })
+        log.error({ err, event: 'ERROR', deleteGroup: kualiGroup.name })
       }
     }
   })

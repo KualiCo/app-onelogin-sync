@@ -20,6 +20,7 @@ const syncUsers = async () => {
     )
     users = users.concat(res.data.data)
   }
+
   log.info({ event: 'SYNC' }, `Syncing ${users.length} users`)
 
   users.forEach(async user => {
@@ -39,7 +40,7 @@ const syncUsers = async () => {
         await kualiRequest.put(`/api/v1/users/${kualiUser.id}`, updateUser)
         log.debug({ event: 'USER_UPDATE' })
       } catch (err) {
-        log.error({ err, event: 'ERROR' })
+        log.error({ err, event: 'ERROR', updateUser: updateUser })
       }
     } else {
       const newUser = {
@@ -53,7 +54,12 @@ const syncUsers = async () => {
         await kualiRequest.post(`/api/v1/users`, newUser)
         log.debug({ event: 'USER_CREATE' })
       } catch (err) {
-        log.error({ err, event: 'ERROR' })
+        log.error({
+          err,
+          event: 'ERROR',
+          attemptedEvent: 'USER_CREATE',
+          newUser: newUser
+        })
       }
     }
   })
@@ -70,7 +76,7 @@ const syncUsers = async () => {
           `DELETING: ${kualiUser.displayName}`
         )
       } catch (err) {
-        log.error({ err, event: 'ERROR' })
+        log.error({ err, event: 'ERROR', deleteUser: kualiUser })
       }
     }
   })
