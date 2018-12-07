@@ -18,6 +18,7 @@ jobs:
           name: Setting build version
           command: |
             date +%Y%m%d%H%M%S > .version
+            cat .version
       - run:
           name: Installing aws
           command: |
