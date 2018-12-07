@@ -1,0 +1,47 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/node:10
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Installing Slack script
+          command: |
+            echo "slack_message=\${@}; curl --silent --data-urlencode \"\$(printf 'payload={\"text\": \"%s\"}' \"\${slack_message}\" )\" \$APP_SLACK_WEBHOOK" > slack
+            chmod +x slack
+      - run:
+          name: Updating Slack
+          command: ./slack $CIRCLE_PROJECT_REPONAME build started $CIRCLE_USERNAME $CIRCLE_BRANCH $CIRCLE_PULL_REQUEST
+      - run:
+          name: Setting build version
+          command: |
+            date +%Y%m%d%H%M%S > .version
+      - run:
+          name: Installing aws
+          command: |
+            sudo apt-get update
+            sudo apt-get install python-pip
+            sudo pip install --upgrade pip
+            sudo pip install awscli --upgrade
+      - run:
+          name: Logging into aws ecr
+          command: eval $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION --registry-ids $REGISTRY_ID)
+      - run:
+          name: Building and pushing docker image
+          command: |
+            export REPOSITORY=${REPOSITORY_BASE}${CIRCLE_PROJECT_REPONAME}
+            docker build --build-arg -t $REPOSITORY:latest -t $REPOSITORY:"$(cat .version)" .
+            docker push $REPOSITORY:"$(cat .version)"
+            docker push $REPOSITORY:latest
+      - run:
+          name: Updating Slack
+          command: ./slack $CIRCLE_PROJECT_REPONAME built and published docker image
+
+workflows:
+  version: 2
+  workflow:
+    jobs:
+      - build:
+          context: org-app-builder
