@@ -6,7 +6,7 @@ const kualiRequest = require('../lib/kualiRequest')
 const kualiOneLoginCategoryId = config.kuali.oneLoginCategoryId
 const kualiOneLoginFieldId = config.kuali.oneLoginFieldId
 
-const syncGroups = async () => {
+const syncGroups = async errors => {
   const req = await oneLoginRequest
   let roles = []
   let res = await req.get('/api/1/roles')
@@ -50,6 +50,7 @@ const syncGroups = async () => {
           updateGroup,
           groupId: kualiGroup.id
         })
+        errors.push(err)
       }
     } else {
       const newGroup = {
@@ -67,6 +68,7 @@ const syncGroups = async () => {
         log.info({ event: 'GROUP_CREATE', newGroup })
       } catch (err) {
         log.error({ err, event: 'ERROR', attempted: 'GROUP_CREATE', newGroup })
+        errors.push(err)
       }
     }
   })
@@ -93,6 +95,7 @@ const syncGroups = async () => {
           attempted: 'GROUP_DELETE',
           kualiGroup
         })
+        errors.push(err)
       }
     }
   })

@@ -2,10 +2,11 @@ const config = require('config')
 const log = require('kuali-logger')(config.get('log'))
 const oneLoginRequest = require('../lib/oneLoginRequest')
 const kualiRequest = require('../lib/kualiRequest')
+const slack = require('../lib/slack')
 
 const kualiOneLoginFieldId = config.kuali.oneLoginFieldId
 
-const syncUsersGroups = async () => {
+const syncUsersGroups = async errors => {
   const req = await oneLoginRequest
 
   // Get all onelogin roles
@@ -15,6 +16,7 @@ const syncUsersGroups = async () => {
     res = await req.get('/api/1/roles')
   } catch (err) {
     log.error({ err, event: 'ERROR', attempted: 'GET_ONELOGIN_ROLES' })
+    errors.push(err)
   }
 
   roles = roles.concat(res.data.data)
@@ -27,6 +29,7 @@ const syncUsersGroups = async () => {
       roles = roles.concat(res.data.data)
     } catch (err) {
       log.error({ err, event: 'ERROR', attempted: 'GET_ONELOGIN_ROLES' })
+      errors.push(err)
     }
   }
 
@@ -36,20 +39,26 @@ const syncUsersGroups = async () => {
     kualiUsers = res.data
   } catch (err) {
     log.error({ err, event: 'ERROR', attempted: 'GET_KUALI_USERS' })
+    errors.push(err)
   }
 
   log.info({ event: 'SYNC' }, `Syncing users to ${roles.length} groups`)
 
-  processRoles(roles, req, kualiUsers)
+  processRoles(roles, req, kualiUsers, errors)
 }
 
-async function processRoles (roles, req, kualiUsers) {
+async function processRoles (roles, req, kualiUsers, errors) {
   for (const role of roles) {
-    await syncRole(role, req, kualiUsers)
+    await syncRole(role, req, kualiUsers, errors)
+  }
+  if (errors.length > 0) {
+    slack('ERRORS: app-onelogin-sync errors occurred, check Loggly.')
+  } else {
+    slack('apps-onelogin-sync ran successfully')
   }
 }
 
-async function syncRole (role, req, kualiUsers) {
+async function syncRole (role, req, kualiUsers, errors) {
   let oneLoginUsers = []
   let res
   try {
@@ -57,6 +66,7 @@ async function syncRole (role, req, kualiUsers) {
     oneLoginUsers = oneLoginUsers.concat(res.data.data)
   } catch (err) {
     log.error({ err, event: 'ERROR', attempted: 'GET_ONELOGIN_USER_ROLES' })
+    errors.push(err)
   }
 
   while (res.data.pagination && res.data.pagination.after_cursor) {
@@ -69,6 +79,7 @@ async function syncRole (role, req, kualiUsers) {
       oneLoginUsers = oneLoginUsers.concat(res.data.data)
     } catch (err) {
       log.error({ err, event: 'ERROR', attempted: 'GET_ONELOGIN_USER_ROLES' })
+      errors.push(err)
     }
   }
 
@@ -92,6 +103,7 @@ async function syncRole (role, req, kualiUsers) {
     }
   } catch (err) {
     log.error({ err, event: 'ERROR', attempted: 'GET_ONELOGIN_GROUPS' })
+    errors.push(err)
   }
 
   const memberPos = group.roles
@@ -136,6 +148,7 @@ async function syncRole (role, req, kualiUsers) {
     log.debug({ event: 'USER_GROUP_UPDATE' }, `Syncing users to ${group.name}`)
   } catch (err) {
     log.error({ err, event: 'ERROR', attempted: 'USER_GROUP_UPDATE', group })
+    errors.push(err)
   }
 }
 

@@ -3,7 +3,7 @@ const log = require('kuali-logger')(config.get('log'))
 const oneLoginRequest = require('../lib/oneLoginRequest')
 const kualiRequest = require('../lib/kualiRequest')
 
-const syncUsers = async () => {
+const syncUsers = async errors => {
   const req = await oneLoginRequest
 
   let users = []
@@ -41,6 +41,7 @@ const syncUsers = async () => {
         log.debug({ event: 'USER_UPDATE', updateUser })
       } catch (err) {
         log.error({ err, event: 'ERROR', attempted: 'USER_UPDATE', updateUser })
+        errors.push(err)
       }
     } else {
       const newUser = {
@@ -60,6 +61,7 @@ const syncUsers = async () => {
           attempted: 'USER_CREATE',
           newUser
         })
+        errors.push(err)
       }
     }
   })
@@ -78,6 +80,7 @@ const syncUsers = async () => {
         )
       } catch (err) {
         log.error({ err, event: 'ERROR', attempted: 'USER_DELETE', kualiUser })
+        errors.push(err)
       }
     }
   })

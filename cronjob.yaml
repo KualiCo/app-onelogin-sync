@@ -3,7 +3,7 @@ kind: CronJob
 metadata:
   name: app-onelogin-sync
 spec:
-  schedule: "*/1 * * * *"
+  schedule: "0 */6 * * *"
   concurrencyPolicy: Forbid
   jobTemplate:
     spec:
@@ -52,6 +52,11 @@ spec:
                     secretKeyRef:
                       name: secrets-app-onelogin-sync
                       key: apps-kuali-onelogin-field-id
+                - name: APPS_SLACK_WEBHOOK
+                  valueFrom:
+                    secretKeyRef:
+                      name: secrets-app-onelogin-sync
+                      key: apps-slack-webhook
                 - name: LOGGLY_AUTH
                   valueFrom:
                     secretKeyRef:

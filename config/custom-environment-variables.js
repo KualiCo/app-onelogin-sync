@@ -8,7 +8,8 @@ module.exports = {
     apiKey: 'APPS_KUALI_API_KEY',
     baseURL: 'APPS_KUALI_BASE_URL',
     oneLoginCategoryId: 'APPS_KUALI_ONELOGIN_CATEGORY_ID',
-    oneLoginFieldId: 'APPS_KUALI_ONELOGIN_FIELD_ID'
+    oneLoginFieldId: 'APPS_KUALI_ONELOGIN_FIELD_ID',
+    appsSlackWebhook: 'APPS_SLACK_WEBHOOK'
   },
   log: {
     stream: {
