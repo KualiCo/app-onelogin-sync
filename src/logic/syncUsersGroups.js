@@ -14,7 +14,7 @@ const syncUsersGroups = async () => {
   try {
     res = await req.get('/api/1/roles')
   } catch (err) {
-    log.error({ err, event: 'ERROR' })
+    log.error({ err, event: 'ERROR', attempted: 'GET_ONELOGIN_ROLES' })
   }
 
   roles = roles.concat(res.data.data)
@@ -26,7 +26,7 @@ const syncUsersGroups = async () => {
       )
       roles = roles.concat(res.data.data)
     } catch (err) {
-      log.error({ err, event: 'ERROR' })
+      log.error({ err, event: 'ERROR', attempted: 'GET_ONELOGIN_ROLES' })
     }
   }
 
@@ -35,7 +35,7 @@ const syncUsersGroups = async () => {
     res = await kualiRequest.get(`/api/v1/users?fields=id,schoolId`)
     kualiUsers = res.data
   } catch (err) {
-    log.error({ err, event: 'ERROR' })
+    log.error({ err, event: 'ERROR', attempted: 'GET_KUALI_USERS' })
   }
 
   log.info({ event: 'SYNC' }, `Syncing users to ${roles.length} groups`)
@@ -56,7 +56,7 @@ async function syncRole (role, req, kualiUsers) {
     res = await req.get(`/api/1/users?role_id=${role.id}&fields=id`)
     oneLoginUsers = oneLoginUsers.concat(res.data.data)
   } catch (err) {
-    log.error({ err, event: 'ERROR' })
+    log.error({ err, event: 'ERROR', attempted: 'GET_ONELOGIN_USER_ROLES' })
   }
 
   while (res.data.pagination && res.data.pagination.after_cursor) {
@@ -68,7 +68,7 @@ async function syncRole (role, req, kualiUsers) {
       )
       oneLoginUsers = oneLoginUsers.concat(res.data.data)
     } catch (err) {
-      log.error({ err, event: 'ERROR' })
+      log.error({ err, event: 'ERROR', attempted: 'GET_ONELOGIN_USER_ROLES' })
     }
   }
 
@@ -91,7 +91,7 @@ async function syncRole (role, req, kualiUsers) {
       group = res.data[0]
     }
   } catch (err) {
-    log.error({ err, event: 'ERROR' })
+    log.error({ err, event: 'ERROR', attempted: 'GET_ONELOGIN_GROUPS' })
   }
 
   const memberPos = group.roles
@@ -135,7 +135,7 @@ async function syncRole (role, req, kualiUsers) {
     res = await kualiRequest.put(`/api/v1/groups/${group.id}`, group)
     log.debug({ event: 'USER_GROUP_UPDATE' }, `Syncing users to ${group.name}`)
   } catch (err) {
-    log.error({ err, event: 'ERROR' })
+    log.error({ err, event: 'ERROR', attempted: 'USER_GROUP_UPDATE', group })
   }
 }
 

@@ -1,3 +1,5 @@
+require('dotenv').config()
+
 const syncUsers = require('./logic/syncUsers')
 const syncGroups = require('./logic/syncGroups')
 const syncUsersGroups = require('./logic/syncUsersGroups')

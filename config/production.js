@@ -7,7 +7,8 @@ module.exports = {
     format: 'json',
     stream: {
       type: 'raw',
-      stream: configLogglyStream
+      stream: configLogglyStream,
+      level: 'info'
     }
   }
 }

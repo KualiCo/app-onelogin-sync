@@ -16,6 +16,7 @@
     "axios": "^0.18.0",
     "bunyan-loggly": "^1.4.0",
     "config": "^3.0.0",
+    "dotenv": "^6.2.0",
     "kuali-logger": "^0.1.5"
   }
 }

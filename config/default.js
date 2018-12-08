@@ -9,15 +9,7 @@ module.exports = {
     name: defer(
       cfg => `${cfg.log.team}-${cfg.log.product}-${cfg.log.environment}`
     ),
-    level: 'debug',
+    level: 'info',
     format: 'pretty'
-  },
-  oneLogin: {
-    baseURL: 'https://api.us.onelogin.com'
-  },
-  kuali: {
-    baseURL: 'https://apps.kuali.co',
-    oneLoginCategoryId: '5b58f76224a1980001714a33',
-    oneLoginFieldId: 'BkZuwOI4m'
   }
 }

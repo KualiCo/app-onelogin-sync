@@ -1,0 +1,74 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: app-onelogin-sync
+spec:
+  schedule: "*/1 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: app-onelogin-sync
+              image: 667650582711.dkr.ecr.us-west-2.amazonaws.com/app-onelogin-sync:20181208184524
+              env:
+                - name: NODE_ENV
+                  value: "production"
+                - name: SERVICE
+                  value: "app-onelogin-sync"
+                - name: ONELOGIN_CLIENT_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: secrets
+                      key: onelogin-client-url
+                - name: ONELOGIN_CLIENT_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: secrets
+                      key: onelogin-client-id
+                - name: ONELOGIN_CLIENT_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: secrets
+                      key: onelogin-client-secret
+                - name: APPS_KUALI_BASE_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: secrets
+                      key: app-kuali-base-url
+                - name: APPS_KUALI_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: secrets
+                      key: app-kuali-api-key
+                - name: APPS_KUALI_ONELOGIN_CATEGORY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: secrets
+                      key: apps-kuali-onelogin-category-id
+                - name: APPS_KUALI_ONELOGIN_FIELD_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: secrets
+                      key: app-kuali-onelogin-field-id
+                - name: LOGGLY_AUTH
+                  valueFrom:
+                    secretKeyRef:
+                      name: secrets
+                      key: loggly-auth
+                - name: LOGGLY_AUTH
+                  valueFrom:
+                    secretKeyRef:
+                      name: secrets
+                      key: loggly-auth
+                - name: NAMESPACE
+                  valueFrom:
+                    secretKeyRef:
+                      name: secrets
+                      key: namespace
+                - name: REGION
+                  valueFrom:
+                    secretKeyRef:
+                      name: secrets
+                      key: region
+          restartPolicy: Never

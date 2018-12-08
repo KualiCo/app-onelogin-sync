@@ -29,7 +29,7 @@ const syncGroups = async () => {
         `/api/v1/groups?fields(${kualiOneLoginFieldId})=${role.id}`
       )
     } catch (err) {
-      log.error({ err, event: 'ERROR', roleId: role.id })
+      log.error({ err, event: 'ERROR', attempted: 'GET_ROLE', roleId: role.id })
     }
 
     if (res.data && res.data[0]) {
@@ -41,12 +41,13 @@ const syncGroups = async () => {
 
       try {
         await kualiRequest.put(`/api/v1/groups/${kualiGroup.id}`, updateGroup)
-        log.debug({ event: 'GROUP_UPDATE' }, updateGroup.name)
+        log.debug({ event: 'GROUP_UPDATE', updateGroup })
       } catch (err) {
         log.error({
           err,
           event: 'ERROR',
-          updateGroup: updateGroup.name,
+          attempted: 'GROUP_UPDATE',
+          updateGroup,
           groupId: kualiGroup.id
         })
       }
@@ -63,9 +64,9 @@ const syncGroups = async () => {
       }
       try {
         await kualiRequest.post('/api/v1/groups', newGroup)
-        log.info({ event: 'GROUP_CREATE' }, newGroup.name)
+        log.info({ event: 'GROUP_CREATE', newGroup })
       } catch (err) {
-        log.error({ err, event: 'ERROR', newGroup: newGroup.name })
+        log.error({ err, event: 'ERROR', attempted: 'GROUP_CREATE', newGroup })
       }
     }
   })
@@ -79,11 +80,19 @@ const syncGroups = async () => {
     const oneLoginId = kualiGroup.fields[i].value
     let index = roles.findIndex(r => r.id.toString() === oneLoginId)
     if (index === -1) {
-      log.info({ event: 'GROUP_DELETE' }, `Deleting ${kualiGroup.name}`)
+      log.info(
+        { event: 'GROUP_DELETE', kualiGroup },
+        `Deleting ${kualiGroup.name}`
+      )
       try {
         await kualiRequest.delete(`/api/v1/groups/${kualiGroup.id}`)
       } catch (err) {
-        log.error({ err, event: 'ERROR', deleteGroup: kualiGroup.name })
+        log.error({
+          err,
+          event: 'ERROR',
+          attempted: 'GROUP_DELETE',
+          kualiGroup
+        })
       }
     }
   })

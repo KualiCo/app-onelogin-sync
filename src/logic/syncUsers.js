@@ -38,9 +38,9 @@ const syncUsers = async () => {
 
       try {
         await kualiRequest.put(`/api/v1/users/${kualiUser.id}`, updateUser)
-        log.debug({ event: 'USER_UPDATE' })
+        log.debug({ event: 'USER_UPDATE', updateUser })
       } catch (err) {
-        log.error({ err, event: 'ERROR', updateUser: updateUser })
+        log.error({ err, event: 'ERROR', attempted: 'USER_UPDATE', updateUser })
       }
     } else {
       const newUser = {
@@ -52,13 +52,13 @@ const syncUsers = async () => {
       }
       try {
         await kualiRequest.post(`/api/v1/users`, newUser)
-        log.debug({ event: 'USER_CREATE' })
+        log.info({ event: 'USER_CREATE', newUser })
       } catch (err) {
         log.error({
           err,
           event: 'ERROR',
-          attemptedEvent: 'USER_CREATE',
-          newUser: newUser
+          attempted: 'USER_CREATE',
+          newUser
         })
       }
     }
@@ -71,12 +71,13 @@ const syncUsers = async () => {
     if (index === -1) {
       try {
         await kualiRequest.delete(`/api/v1/users/${kualiUser.id}`)
-        log.debug(
+        log.info(
           { event: 'USER_DELETE' },
-          `DELETING: ${kualiUser.displayName}`
+          `DELETING: ${kualiUser.displayName}`,
+          kualiUser
         )
       } catch (err) {
-        log.error({ err, event: 'ERROR', deleteUser: kualiUser })
+        log.error({ err, event: 'ERROR', attempted: 'USER_DELETE', kualiUser })
       }
     }
   })
