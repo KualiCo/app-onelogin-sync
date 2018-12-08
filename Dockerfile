@@ -14,5 +14,6 @@ RUN yarn --production
 # Bundle app source
 COPY . $CODE_PATH
 
-# Exports
-ENTRYPOINT ["/entrypoint.sh"]
+# Commands
+ENTRYPOINT [ "/bin/sh", "-c" ]
+CMD [ "yarn", "start" ]

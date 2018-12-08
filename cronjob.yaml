@@ -4,23 +4,25 @@ metadata:
   name: app-onelogin-sync
 spec:
   schedule: "*/1 * * * *"
+  concurrencyPolicy: Forbid
   jobTemplate:
     spec:
       template:
         spec:
           containers:
             - name: app-onelogin-sync
-              image: 667650582711.dkr.ecr.us-west-2.amazonaws.com/app-onelogin-sync:20181208184524
+              image: 667650582711.dkr.ecr.us-west-2.amazonaws.com/app-onelogin-sync:20181208202533
+              imagePullPolicy: Always
               env:
                 - name: NODE_ENV
                   value: "production"
                 - name: SERVICE
                   value: "app-onelogin-sync"
-                - name: ONELOGIN_CLIENT_URL
+                - name: ONELOGIN_BASE_URL
                   valueFrom:
                     secretKeyRef:
                       name: secrets
-                      key: onelogin-client-url
+                      key: onelogin-base-url
                 - name: ONELOGIN_CLIENT_ID
                   valueFrom:
                     secretKeyRef:
@@ -35,12 +37,12 @@ spec:
                   valueFrom:
                     secretKeyRef:
                       name: secrets
-                      key: app-kuali-base-url
+                      key: apps-kuali-base-url
                 - name: APPS_KUALI_API_KEY
                   valueFrom:
                     secretKeyRef:
                       name: secrets
-                      key: app-kuali-api-key
+                      key: apps-kuali-api-key
                 - name: APPS_KUALI_ONELOGIN_CATEGORY_ID
                   valueFrom:
                     secretKeyRef:
@@ -50,7 +52,7 @@ spec:
                   valueFrom:
                     secretKeyRef:
                       name: secrets
-                      key: app-kuali-onelogin-field-id
+                      key: apps-kuali-onelogin-field-id
                 - name: LOGGLY_AUTH
                   valueFrom:
                     secretKeyRef:
