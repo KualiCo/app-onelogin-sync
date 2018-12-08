@@ -11,7 +11,7 @@ spec:
         spec:
           containers:
             - name: app-onelogin-sync
-              image: 667650582711.dkr.ecr.us-west-2.amazonaws.com/app-onelogin-sync:20181208205150
+              image: {{REPOSITORY}}:{{TAG}}
               env:
                 - name: NODE_ENV
                   value: "production"
@@ -20,37 +20,37 @@ spec:
                 - name: ONELOGIN_BASE_URL
                   valueFrom:
                     secretKeyRef:
-                      name: secrets
+                      name: secrets-app-onelogin-sync
                       key: onelogin-base-url
                 - name: ONELOGIN_CLIENT_ID
                   valueFrom:
                     secretKeyRef:
-                      name: secrets
+                      name: secrets-app-onelogin-sync
                       key: onelogin-client-id
                 - name: ONELOGIN_CLIENT_SECRET
                   valueFrom:
                     secretKeyRef:
-                      name: secrets
+                      name: secrets-app-onelogin-sync
                       key: onelogin-client-secret
                 - name: APPS_KUALI_BASE_URL
                   valueFrom:
                     secretKeyRef:
-                      name: secrets
+                      name: secrets-app-onelogin-sync
                       key: apps-kuali-base-url
                 - name: APPS_KUALI_API_KEY
                   valueFrom:
                     secretKeyRef:
-                      name: secrets
+                      name: secrets-app-onelogin-sync
                       key: apps-kuali-api-key
                 - name: APPS_KUALI_ONELOGIN_CATEGORY_ID
                   valueFrom:
                     secretKeyRef:
-                      name: secrets
+                      name: secrets-app-onelogin-sync
                       key: apps-kuali-onelogin-category-id
                 - name: APPS_KUALI_ONELOGIN_FIELD_ID
                   valueFrom:
                     secretKeyRef:
-                      name: secrets
+                      name: secrets-app-onelogin-sync
                       key: apps-kuali-onelogin-field-id
                 - name: LOGGLY_AUTH
                   valueFrom:

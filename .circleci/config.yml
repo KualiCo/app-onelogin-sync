@@ -38,6 +38,29 @@ jobs:
             docker push $REPOSITORY:"$(cat .version)"
             docker push $REPOSITORY:latest
       - run:
+          name: Installing kops and kubectl
+          command: |
+            wget -O kops https://github.com/kubernetes/kops/releases/download/$(curl -s https://api.github.com/repos/kubernetes/kops/releases/latest | grep tag_name | cut -d '"' -f 4)/kops-linux-amd64
+            chmod +x ./kops
+            sudo mv ./kops /usr/local/bin/
+            curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+            chmod +x ./kubectl
+            sudo mv ./kubectl /usr/local/bin/kubectl
+      - run:
+          name: Getting kubernetes config
+          command: kops export kubecfg --name $CLUSTER_NAME_USWEST2 --state $CLUSTER_STATE_USWEST2
+      - run:
+          name: Deploying to production
+          command: |
+            export REPOSITORY=${REPOSITORY_BASE}${CIRCLE_PROJECT_REPONAME}
+            kubectl config set-context production --namespace=production --cluster=$CLUSTER_NAME_USWEST2 --user=$CLUSTER_NAME_USWEST2
+            kubectl config use-context production
+            TAG="$(cat .version)"
+            TEMPLATE=`cat "cronjob.yaml" | sed -e "s?{{REPOSITORY}}?$REPOSITORY?g" -e "s?{{TAG}}?$TAG?g"`
+            echo "$TEMPLATE" | kubectl apply --record=true --filename=-
+            kubectl rollout status cronjob/$CIRCLE_PROJECT_REPONAME -w
+            echo $?
+      - run:
           name: Updating Slack
           command: ./slack $CIRCLE_PROJECT_REPONAME built and published docker image
 
