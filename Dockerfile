@@ -1,5 +1,5 @@
 FROM node:10-alpine
-MAINTAINER Kuali Build (build@kuali.co)
+LABEL maintainer="Kuali Build (build@kuali.co)"
 
 # Create app directory
 ENV CODE_PATH /usr/src/app

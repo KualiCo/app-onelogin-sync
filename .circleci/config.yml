@@ -61,7 +61,7 @@ jobs:
             echo $?
       - run:
           name: Updating Slack
-          command: ./slack $CIRCLE_PROJECT_REPONAME built and published docker image
+          command: ./slack $CIRCLE_PROJECT_REPONAME deployed successfully
 
 workflows:
   version: 2
