@@ -15,5 +15,4 @@ RUN yarn --production
 COPY . $CODE_PATH
 
 # Commands
-ENTRYPOINT [ "/bin/sh", "-c" ]
-CMD [ "yarn", "start" ]
+ENTRYPOINT [ "yarn", "start" ]

@@ -11,8 +11,7 @@ spec:
         spec:
           containers:
             - name: app-onelogin-sync
-              image: 667650582711.dkr.ecr.us-west-2.amazonaws.com/app-onelogin-sync:20181208202533
-              imagePullPolicy: Always
+              image: 667650582711.dkr.ecr.us-west-2.amazonaws.com/app-onelogin-sync:20181208205150
               env:
                 - name: NODE_ENV
                   value: "production"
