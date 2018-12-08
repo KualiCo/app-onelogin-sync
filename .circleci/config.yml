@@ -58,7 +58,6 @@ jobs:
             TAG="$(cat .version)"
             TEMPLATE=`cat "cronjob.yaml" | sed -e "s?{{REPOSITORY}}?$REPOSITORY?g" -e "s?{{TAG}}?$TAG?g"`
             echo "$TEMPLATE" | kubectl apply --record=true --filename=-
-            kubectl rollout status cronjob/$CIRCLE_PROJECT_REPONAME -w
             echo $?
       - run:
           name: Updating Slack
