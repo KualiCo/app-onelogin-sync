@@ -21,7 +21,7 @@ const syncUsers = async errors => {
     users = users.concat(res.data.data)
   }
 
-  log.info({ event: 'SYNC' }, `Syncing ${users.length} users`)
+  log.debug({ event: 'SYNC' }, `Syncing ${users.length} users`)
 
   users.forEach(async user => {
     const res = await kualiRequest.get(`/api/v1/users?schoolId=${user.id}`)

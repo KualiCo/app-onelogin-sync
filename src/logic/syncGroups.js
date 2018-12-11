@@ -20,7 +20,7 @@ const syncGroups = async errors => {
     roles = roles.concat(res.data.data)
   }
 
-  log.info({ event: 'SYNC' }, `Syncing ${roles.length} groups`)
+  log.debug({ event: 'SYNC' }, `Syncing ${roles.length} groups`)
 
   roles.forEach(async role => {
     let res

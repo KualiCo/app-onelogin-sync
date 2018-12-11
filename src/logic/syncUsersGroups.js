@@ -42,7 +42,7 @@ const syncUsersGroups = async errors => {
     errors.push(err)
   }
 
-  log.info({ event: 'SYNC' }, `Syncing users to ${roles.length} groups`)
+  log.debug({ event: 'SYNC' }, `Syncing users to ${roles.length} groups`)
 
   processRoles(roles, req, kualiUsers, errors)
 }
@@ -54,7 +54,7 @@ async function processRoles (roles, req, kualiUsers, errors) {
   if (errors.length > 0) {
     slack('ERRORS: app-onelogin-sync errors occurred, check Loggly.')
   } else {
-    slack('apps-onelogin-sync ran successfully')
+    log.info({ event: 'SYNC_SUCCESS' }, 'apps-onelogin-sync ran successfully')
   }
 }
 
