@@ -60,21 +60,11 @@ spec:
                 - name: LOGGLY_AUTH
                   valueFrom:
                     secretKeyRef:
-                      name: secrets
+                      name: loggly-secrets
                       key: loggly-auth
-                - name: LOGGLY_AUTH
-                  valueFrom:
-                    secretKeyRef:
-                      name: secrets
-                      key: loggly-auth
-                - name: NAMESPACE
-                  valueFrom:
-                    secretKeyRef:
-                      name: secrets
-                      key: namespace
                 - name: REGION
                   valueFrom:
                     secretKeyRef:
-                      name: secrets
+                      name: not-encrypted-secrets
                       key: region
           restartPolicy: Never

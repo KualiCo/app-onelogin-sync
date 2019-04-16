@@ -12,7 +12,7 @@ const logglyConfig = {
   subdomain: 'kualidev',
   tags: [
     'Kuali-App',
-    process.env.NAMESPACE || '',
+    process.env.NODE_ENV || '',
     process.env.SERVICE || '',
     process.env.REGION || ''
   ]
