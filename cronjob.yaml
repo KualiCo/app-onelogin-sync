@@ -17,6 +17,11 @@ spec:
                   value: "production"
                 - name: SERVICE
                   value: "app-onelogin-sync"
+                - name: LOGGLY_AUTH
+                  valueFrom:
+                    secretKeyRef:
+                      name: loggly-secrets
+                      key: loggly-auth
                 - name: ONELOGIN_BASE_URL
                   valueFrom:
                     secretKeyRef:
@@ -57,11 +62,6 @@ spec:
                     secretKeyRef:
                       name: secrets-app-onelogin-sync
                       key: apps-slack-webhook
-                - name: LOGGLY_AUTH
-                  valueFrom:
-                    secretKeyRef:
-                      name: loggly-secrets
-                      key: loggly-auth
                 - name: REGION
                   valueFrom:
                     secretKeyRef:
